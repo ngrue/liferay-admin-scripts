@@ -1,6 +1,7 @@
 #
 # Copyright (c) 2012 Sébastien Le Marchand, All rights reserved.
 #
+
 # This library is free software; you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
 # Software Foundation; either version 2.1 of the License, or (at your option)
@@ -16,13 +17,14 @@
 # sql_query_csv.rb
 #
 # Execute a SQL Query on the Liferay Database and display results in HTML format
+# Modified by Nicolas Grué (2014) : support of CLOB column types and HTML escaping.
 #
 
 # Constants (to update at your convenience) 
 
 QUERY = "
 	SELECT * 
-	FROM USER_" 	# The SQL query to execute
+	FROM PORTLETPREFERENCES " 	# The SQL query to execute
 MAX_ROWS = 100 		# The max rows to display	
 
 # Implementation
@@ -30,6 +32,7 @@ MAX_ROWS = 100 		# The max rows to display
 java_import java.io.PrintStream
 java_import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream
 java_import com.liferay.portal.kernel.dao.jdbc.DataAccess
+java_import com.liferay.portal.kernel.util.HtmlUtil
 
 if $out.class == UnsyncByteArrayOutputStream # Fix for Liferay version < 6.0.11
 	$out = PrintStream.new($out)
@@ -78,12 +81,7 @@ begin
 			typeCol = md.getColumnTypeName(column)
 			if (typeCol == "CLOB")
 				clob = rs.getClob(column)
-				if (clob == nil)
-					clob = "(null)"
-				else
-					clob = clob.getSubString(1, clob.length())
-				end
-				line = line + "<td>" + HtmlUtil.escape(clob) + "</td>"
+				line = line + "<td>" + HtmlUtil.escape(clob.getSubString(1, clob.length())) + "</td>"
 			else
 				line = line + "<td>" + HtmlUtil.escape(value.to_s) + "</td>"
 			end

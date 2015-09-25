@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2012 Sébastien Le Marchand, All rights reserved.
+# Copyright (c) 2012 SÃ©bastien Le Marchand, All rights reserved.
 #
 # This library is free software; you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -75,7 +75,18 @@ begin
 		line = "<tr class=\"portlet-section-alternate results-row " + (alt ? "alt" : "") + "\">" 
 		for column in 1..cc
 			value =  rs.getObject(column)
-			line = line + "<td>" + value.to_s + "</td>"
+			typeCol = md.getColumnTypeName(column)
+			if (typeCol == "CLOB")
+				clob = rs.getClob(column)
+				if (clob == nil)
+					clob = "(null)"
+				else
+					clob = clob.getSubString(1, clob.length())
+				end
+				line = line + "<td>" + HtmlUtil.escape(clob) + "</td>"
+			else
+				line = line + "<td>" + HtmlUtil.escape(value.to_s) + "</td>"
+			end
 		end	
 		log(line)
 		alt = !alt

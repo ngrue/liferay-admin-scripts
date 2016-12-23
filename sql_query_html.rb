@@ -81,7 +81,11 @@ begin
 			typeCol = md.getColumnTypeName(column)
 			if (typeCol == "CLOB")
 				clob = rs.getClob(column)
-				line = line + "<td>" + HtmlUtil.escape(clob.getSubString(1, clob.length())) + "</td>"
+				if ((!clob.nil?) and (clob.length() > 0))
+					line = line + "<td>" + HtmlUtil.escape(clob.getSubString(1, clob.length())) + "</td>"
+				else
+					line = line + "<td></td>"
+				end
 			else
 				line = line + "<td>" + HtmlUtil.escape(value.to_s) + "</td>"
 			end

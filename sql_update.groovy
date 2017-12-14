@@ -15,7 +15,7 @@
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 
 /**
- * sql_update.rb
+ * sql_update.groovy
  *
  * Execute a SQL update on the Liferay Database and display affected row count.
  */

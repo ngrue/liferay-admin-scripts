@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016 Nicolas Grué, All rights reserved.
+ * Copyright (c) 2016 Nicolas GruÃ©, All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -13,12 +13,13 @@
  */
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.search.*;
+import com.liferay.portal.kernel.search.generic.*;
 
 // UPDATE AT YOUR CONVENIENCE
 NB_RESULTS = 10;
-QUERY = "+entryClassName:com.liferay.portal.model.User +lastName:SMITH*";
+QUERY = "+entryClassName:com.liferay.portal.kernel.model.User +lastName:Test*";
 COMPANYID = PortalUtil.getDefaultCompanyId();
 OUTPUT_CSV=false; // true will output CSV, false will output HTML
 
@@ -27,7 +28,7 @@ logger = LogFactoryUtil.getLog("com.edf.add_category_generalites")
 def log = { m -> logger.info(m); println m }
 
 
-hits = SearchEngineUtil.search(SearchEngineUtil.getDefaultSearchEngineId(), COMPANYID, new StringQueryImpl( QUERY
+hits = SearchEngineUtil.search(SearchEngineUtil.getDefaultSearchEngineId(), COMPANYID, new StringQuery( QUERY
 	), 0, NB_RESULTS);
 
 log(hits.getLength()+" results:");

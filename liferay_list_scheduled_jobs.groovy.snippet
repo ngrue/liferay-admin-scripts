@@ -17,32 +17,102 @@ import com.liferay.portal.kernel.scheduler.*;
 import com.liferay.portal.kernel.util.DateUtil;
 import java.util.Date;
 
+/*
+ * COLUMNS SPECIFICATION
+ * available: storage; state; triggerType; configExpression; dateDeb; datePrev; dateNext; jobName
+ */
+def SEPARATOR = '; ';
+def COLUMNS = 'storage; state; triggerType; configExpression; dateDeb; datePrev; dateNext; jobName';
+
+/*
+ * filter on job names.
+ */
+def JOBNAME_STARTS_WITH = '';
+
+/*
+ * command: pause job matching JOBNAME_STARTS_WITH filter.
+ * WARNING it may stop many jobs, if JOBNAME_STARTS_WITH is too short.
+ */
+def COMMAND_JOB_PAUSE = false  && (JOBNAME_STARTS_WITH.length() > 0);
+
+/*
+ * command: resume job matching JOBNAME_STARTS_WITH filter.
+ * WARNING it may stop many jobs, if JOBNAME_STARTS_WITH is too short.
+ */
+def COMMAND_JOB_RESUME = false  && (JOBNAME_STARTS_WITH.length() > 0);
+
+
+//===========================================
+
+
 logger = LogFactoryUtil.getLog('com.liferay.scheduler.joblist')
 def log = { m -> logger.info(m); println m }
 
 jobs = SchedulerEngineHelperUtil.getScheduledJobs()
 
-log 'storage; state; trigger.type; config expression; trigger.start; previous; next; job name'
+log COLUMNS
+
+def cols = COLUMNS.split(SEPARATOR);
 
 jobs.sort{it.trigger.startDate};
 jobs = jobs.reverse();
 
 jobs.each { job ->
-    dateDeb = job.trigger.startDate;
-    datePrev = job.trigger.wrappedTrigger.previousFireTime;
-    dateNext = job.trigger.wrappedTrigger.nextFireTime;
-    formatter = DateUtil.getISO8601Format();
-	triggerType = job.trigger.wrappedTrigger.class.simpleName.replace('TriggerImpl','');
-	triggerTypeIsCron = triggerType.startsWith('Cron');
-	triggerTypeIsCalInterval = triggerType.startsWith('CalendarInterval');
-    log ''+job.getStorageType()+
-            '; '+SchedulerEngineHelperUtil.getJobState(job)+
-            '; '+ triggerType +
-            '; '+(triggerTypeIsCron? job.trigger.wrappedTrigger.cronExpression : 
-			(triggerTypeIsCalInterval? job.trigger.wrappedTrigger.repeatInterval + ' ' + 
-				job.trigger.wrappedTrigger.repeatIntervalUnit : '') )+
-            '; '+( dateDeb? formatter.format(dateDeb) : '' )+
-            '; '+( datePrev? formatter.format(datePrev) : '' )+
-            '; '+( dateNext? formatter.format(dateNext) : '' )+
-            '; '+job.getJobName() ;
+	def jobName = job.getJobName();
+	if ( jobName.startsWith(JOBNAME_STARTS_WITH) ) {
+		def storage = job.getStorageType();
+	    def state = SchedulerEngineHelperUtil.getJobState(job)
+	    
+		dateDebDt = job.trigger.startDate;
+	    datePrevDt = job.trigger.wrappedTrigger.previousFireTime;
+	    dateNextDt = job.trigger.wrappedTrigger.nextFireTime;
+	    formatter = DateUtil.getISO8601Format();
+	    def dateDeb = dateDebDt? formatter.format(dateDebDt) : '';
+	    def datePrev = datePrevDt? formatter.format(datePrevDt) : '';
+	    def dateNext = dateNextDt? formatter.format(dateNextDt) : '';
+	    
+	    def triggerType = job.trigger.wrappedTrigger.class.simpleName.replace('TriggerImpl','');
+	    def triggerTypeIsCron = triggerType.startsWith('Cron');
+	    def triggerTypeIsCalInterval = triggerType.startsWith('CalendarInterval');
+	    def configExpression = (triggerTypeIsCron? job.trigger.wrappedTrigger.cronExpression : 
+				(triggerTypeIsCalInterval? job.trigger.wrappedTrigger.repeatInterval + ' ' + 
+					job.trigger.wrappedTrigger.repeatIntervalUnit : '') );
+	    
+	    def gstr = '';
+	    cols.each { col ->
+	    	if (gstr.length() > 0) {
+	    		gstr += SEPARATOR;
+	    	}
+	    	if (col.equals('storage')) {
+	    	   	gstr += storage;
+	    	} else if (col.equals('state')) {
+	    	   	gstr += state;
+	    	} else if (col.equals('triggerType')) {
+	    	   	gstr += triggerType;
+	    	} else if (col.equals('configExpression')) {
+	    	   	gstr += configExpression;
+	    	} else if (col.equals('dateDeb')) {
+	    	   	gstr += dateDeb;
+	    	} else if (col.equals('datePrev')) {
+	    	   	gstr += datePrev;
+	    	} else if (col.equals('dateNext')) {
+	    	   	gstr += dateNext;
+	    	} else if (col.equals('jobName')) {
+	    	   	gstr += jobName;
+	    	}
+	    }
+	    log gstr;
+		if (COMMAND_JOB_PAUSE) {
+			SchedulerEngineHelperUtil.pause(jobName, job.groupName, job.storageType);
+		}
+		if (COMMAND_JOB_RESUME) {
+			SchedulerEngineHelperUtil.resume(jobName, job.groupName, job.storageType);
+		}
+	}
+}
+if (COMMAND_JOB_PAUSE) {
+	log "Job(s) ${JOBNAME_STARTS_WITH}* is(are) PAUSED";
+}
+if (COMMAND_JOB_RESUME) {
+	log "Job(s) ${JOBNAME_STARTS_WITH}* is(are) RESUMED";
 }

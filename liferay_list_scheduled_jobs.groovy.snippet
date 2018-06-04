@@ -22,14 +22,15 @@ def log = { m -> logger.info(m); println m }
 
 jobs = SchedulerEngineHelperUtil.getScheduledJobs()
 
-log 'storage; state; trigger.type; config expression; trigger.start; trigger.end; job name'
+log 'storage; state; trigger.type; config expression; trigger.start; previous; next; job name'
 
 jobs.sort{it.trigger.startDate};
 jobs = jobs.reverse();
 
 jobs.each { job ->
     dateDeb = job.trigger.startDate;
-    dateFin = job.trigger.endDate;
+    datePrev = job.trigger.wrappedTrigger.previousFireTime;
+    dateNext = job.trigger.wrappedTrigger.nextFireTime;
     formatter = DateUtil.getISO8601Format();
 	triggerType = job.trigger.wrappedTrigger.class.simpleName.replace('TriggerImpl','');
 	triggerTypeIsCron = triggerType.startsWith('Cron');
@@ -41,6 +42,7 @@ jobs.each { job ->
 			(triggerTypeIsCalInterval? job.trigger.wrappedTrigger.repeatInterval + ' ' + 
 				job.trigger.wrappedTrigger.repeatIntervalUnit : '') )+
             '; '+( dateDeb? formatter.format(dateDeb) : '' )+
-            '; '+( dateFin? formatter.format(dateFin) : '' )+
+            '; '+( datePrev? formatter.format(datePrev) : '' )+
+            '; '+( dateNext? formatter.format(dateNext) : '' )+
             '; '+job.getJobName() ;
 }

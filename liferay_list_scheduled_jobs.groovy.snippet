@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2014 Nicolas GRUE, All rights reserved.
+* Copyright (c) 2018 Nicolas GRUE, All rights reserved.
 *
 * This library is free software; you can redistribute it and/or modify it under
 * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,21 +20,26 @@ import java.util.Date;
 logger = LogFactoryUtil.getLog('com.liferay.scheduler.joblist')
 def log = { m -> logger.info(m); println m }
 
-jobs = SchedulerEngineUtil.getScheduledJobs()
+jobs = SchedulerEngineHelperUtil.getScheduledJobs()
 
-log 'storage; state; trigger.type; trigger.content; trigger.start; trigger.end; job name'
+log 'storage; state; trigger.type; config expression; trigger.start; trigger.end; job name'
 
 jobs.sort{it.trigger.startDate};
 jobs = jobs.reverse();
 
 jobs.each { job ->
-    dateDeb = job.getTrigger().getStartDate();
-    dateFin = job.getTrigger().getEndDate();
+    dateDeb = job.trigger.startDate;
+    dateFin = job.trigger.endDate;
     formatter = DateUtil.getISO8601Format();
+	triggerType = job.trigger.wrappedTrigger.class.simpleName.replace('TriggerImpl','');
+	triggerTypeIsCron = triggerType.startsWith('Cron');
+	triggerTypeIsCalInterval = triggerType.startsWith('CalendarInterval');
     log ''+job.getStorageType()+
-            '; '+SchedulerEngineUtil.getJobState(job)+
-            '; '+job.trigger.triggerType+
-            '; '+job.trigger.triggerContent+
+            '; '+SchedulerEngineHelperUtil.getJobState(job)+
+            '; '+ triggerType +
+            '; '+(triggerTypeIsCron? job.trigger.wrappedTrigger.cronExpression : 
+			(triggerTypeIsCalInterval? job.trigger.wrappedTrigger.repeatInterval + ' ' + 
+				job.trigger.wrappedTrigger.repeatIntervalUnit : '') )+
             '; '+( dateDeb? formatter.format(dateDeb) : '' )+
             '; '+( dateFin? formatter.format(dateFin) : '' )+
             '; '+job.getJobName() ;

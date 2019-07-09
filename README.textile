@@ -4,5 +4,7 @@ h1. Liferay Admin Scripts
 by Sébastien Le Marchand
 fork by Nicolas Grué
 
-
 A collection of scripts to run in the Liferay admin script console
+
+branch master is for 6.x, 
+use branch liferay7 for 7.x CE and DXP

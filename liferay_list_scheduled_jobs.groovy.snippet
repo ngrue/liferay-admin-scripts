@@ -22,7 +22,7 @@ import java.util.Date;
  * available: storage; state; triggerType; configExpression; dateDeb; datePrev; dateNext; jobName
  */
 def SEPARATOR = '; ';
-def COLUMNS = 'storage; state; triggerType; configExpression; dateDeb; datePrev; dateNext; jobName';
+def COLUMNS = 'storage; state; triggerType; configExpression; dateDeb; datePrev; dateNext; jobName;groupName';
 
 /*
  * filter on job names.
@@ -62,6 +62,7 @@ jobs.each { job ->
 	if ( jobName.startsWith(JOBNAME_STARTS_WITH) ) {
 		def storage = job.getStorageType();
 	    def state = SchedulerEngineHelperUtil.getJobState(job)
+	    def groupName = job.getGroupName();
 	    
 		dateDebDt = job.trigger.startDate;
 	    datePrevDt = job.trigger.wrappedTrigger.previousFireTime;
@@ -99,6 +100,8 @@ jobs.each { job ->
 	    	   	gstr += dateNext;
 	    	} else if (col.equals('jobName')) {
 	    	   	gstr += jobName;
+	    	} else if (col.equals('groupName')) {
+	    	   	gstr += groupName;
 	    	}
 	    }
 	    log gstr;
